@@ -2,6 +2,8 @@ package config
 
 import (
 	"log"
+	"os"
+	"strconv"
 
 	"github.com/spf13/viper"
 )
@@ -60,21 +62,22 @@ func ReadEnv() *AppConfig {
 		viper.SetConfigName("local")
 		viper.SetConfigType("env")
 
-	viper.AddConfigPath(".")
-	viper.SetConfigName("local")
-	viper.SetConfigType("env")
+		viper.AddConfigPath(".")
+		viper.SetConfigName("local")
+		viper.SetConfigType("env")
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Println("error read config : ", err.Error())
-		return nil
-	}
-	err = viper.Unmarshal(&app)
-	if err != nil {
-		log.Println("error parse config : ", err.Error())
-		return nil
-	}
+		err := viper.ReadInConfig()
+		if err != nil {
+			log.Println("error read config : ", err.Error())
+			return nil
+		}
+		err = viper.Unmarshal(&app)
+		if err != nil {
+			log.Println("error parse config : ", err.Error())
+			return nil
+		}
 
+	}
 	JWT_KEY = app.jwtKey
 	return &app
 }
