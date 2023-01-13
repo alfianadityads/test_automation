@@ -17,8 +17,8 @@ type BookHandler interface {
 	Add() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
-	// MyBook() echo.HandlerFunc
-	// BookList() echo.handlerFunc
+	MyBook() echo.HandlerFunc
+	BookList() echo.HandlerFunc
 }
 
 type BookService interface {

@@ -34,6 +34,29 @@ func (_m *BookData) Add(userID uint, newBook book.BookCore) (book.BookCore, erro
 	return r0, r1
 }
 
+// BookList provides a mock function with given fields:
+func (_m *BookData) BookList() ([]book.BookCore, error) {
+	ret := _m.Called()
+
+	var r0 []book.BookCore
+	if rf, ok := ret.Get(0).(func() []book.BookCore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]book.BookCore)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: userID, bookID
 func (_m *BookData) Delete(userID uint, bookID uint) error {
 	ret := _m.Called(userID, bookID)
@@ -48,20 +71,43 @@ func (_m *BookData) Delete(userID uint, bookID uint) error {
 	return r0
 }
 
-// Update provides a mock function with given fields: bookID, updateBook
-func (_m *BookData) Update(bookID uint, updateBook book.BookCore) (book.BookCore, error) {
-	ret := _m.Called(bookID, updateBook)
+// MyBook provides a mock function with given fields: userID
+func (_m *BookData) MyBook(userID uint) ([]book.BookCore, error) {
+	ret := _m.Called(userID)
+
+	var r0 []book.BookCore
+	if rf, ok := ret.Get(0).(func(uint) []book.BookCore); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]book.BookCore)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(uint) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Update provides a mock function with given fields: userID, bookID, updateBook
+func (_m *BookData) Update(userID uint, bookID uint, updateBook book.BookCore) (book.BookCore, error) {
+	ret := _m.Called(userID, bookID, updateBook)
 
 	var r0 book.BookCore
-	if rf, ok := ret.Get(0).(func(uint, book.BookCore) book.BookCore); ok {
-		r0 = rf(bookID, updateBook)
+	if rf, ok := ret.Get(0).(func(uint, uint, book.BookCore) book.BookCore); ok {
+		r0 = rf(userID, bookID, updateBook)
 	} else {
 		r0 = ret.Get(0).(book.BookCore)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(uint, book.BookCore) error); ok {
-		r1 = rf(bookID, updateBook)
+	if rf, ok := ret.Get(1).(func(uint, uint, book.BookCore) error); ok {
+		r1 = rf(userID, bookID, updateBook)
 	} else {
 		r1 = ret.Error(1)
 	}

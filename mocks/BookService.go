@@ -34,6 +34,29 @@ func (_m *BookService) Add(token interface{}, newBook book.BookCore) (book.BookC
 	return r0, r1
 }
 
+// BookList provides a mock function with given fields:
+func (_m *BookService) BookList() ([]book.BookCore, error) {
+	ret := _m.Called()
+
+	var r0 []book.BookCore
+	if rf, ok := ret.Get(0).(func() []book.BookCore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]book.BookCore)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: token, bookID
 func (_m *BookService) Delete(token interface{}, bookID uint) error {
 	ret := _m.Called(token, bookID)
@@ -46,6 +69,29 @@ func (_m *BookService) Delete(token interface{}, bookID uint) error {
 	}
 
 	return r0
+}
+
+// MyBook provides a mock function with given fields: token
+func (_m *BookService) MyBook(token interface{}) ([]book.BookCore, error) {
+	ret := _m.Called(token)
+
+	var r0 []book.BookCore
+	if rf, ok := ret.Get(0).(func(interface{}) []book.BookCore); ok {
+		r0 = rf(token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]book.BookCore)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(interface{}) error); ok {
+		r1 = rf(token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Update provides a mock function with given fields: token, bookID, updateBook

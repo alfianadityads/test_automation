@@ -1,205 +1,294 @@
 package services
 
-// import (
-// 	"cleanarch/features/user"
-// 	"cleanarch/helper"
-// 	"cleanarch/mocks"
-// 	"errors"
-// 	"testing"
+import (
+	"cleanarch/features/user"
+	"cleanarch/helper"
+	"cleanarch/mocks"
+	"errors"
+	"testing"
 
-// 	"github.com/golang-jwt/jwt"
-// 	"github.com/stretchr/testify/assert"
-// 	"github.com/stretchr/testify/mock"
-// )
+	"github.com/golang-jwt/jwt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+)
 
-// func TestLogin(t *testing.T) {
-// 	repo := mocks.NewUserData(t) // mock data
 
-// 	t.Run("Berhasil login", func(t *testing.T) {
-// 		// input dan respond untuk mock data
-// 		inputEmail := "jerry@alterra.id"
-// 		// res dari data akan mengembalikan password yang sudah di hash
-// 		hashed, _ := helper.GeneratePassword("be1422")
-// 		resData := user.UserCore{ID: uint(1), Nama: "jerry", Email: "jerry@alterra.id", HP: "08123456", Password: hashed}
+func TestRegister(t *testing.T) {
+	repo := mocks.NewUserData(t)
 
-// 		repo.On("Login", inputEmail).Return(resData, nil) // simulasi method login pada layer data
+	t.Run("berhasil melakukan register", func(t *testing.T) {
+		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", Alamat: "jogja", HP: "081234567", Password: "alf123"}
+		resData := user.UserCore{ID: uint(1), Nama: "alfian", Email: "alfian@example.com", Alamat: "jogja", HP: "081234567"}
+		repo.On("Register", mock.Anything).Return(resData, nil).Once()
+		srv := Isolation(repo)
+		res, err := srv.Register(inputData)
+		assert.Nil(t, err)
+		assert.Equal(t, resData.ID, res.ID)
+		assert.Equal(t, resData.Nama, res.Nama)
+		repo.AssertExpectations(t)
+	})
 
-// 		srv := Isolation(repo)
-// 		token, res, err := srv.Login(inputEmail, "be1422")
-// 		assert.Nil(t, err)
-// 		assert.NotEmpty(t, token)
-// 		assert.Equal(t, resData.ID, res.ID)
-// 		repo.AssertExpectations(t)
-// 	})
+	t.Run("masalah di server", func(t *testing.T) {
+		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", Alamat: "jogja", HP: "081234567", Password: "alf123"}
+		resData := user.UserCore{ID: uint(1), Nama: "alfian", Email: "alfian@example.com", Alamat: "jogja", HP: "081234567"}
+		repo.On("Register", mock.Anything).Return(resData, errors.New("terdapat masalah pada server")).Once()
+		srv := Isolation(repo)
+		res, err := srv.Register(inputData)
+		assert.NotNil(t, err)
+		assert.Equal(t, uint(0), res.ID)
+		assert.ErrorContains(t, err, "server")
+		repo.AssertExpectations(t)
+	})
 
-// 	t.Run("Tidak ditemukan", func(t *testing.T) {
-// 		inputEmail := "putra@alterra.id"
-// 		repo.On("Login", inputEmail).Return(user.UserCore{}, errors.New("data not found"))
+}
 
-// 		srv := Isolation(repo)
-// 		token, res, err := srv.Login(inputEmail, "be1422")
-// 		assert.NotNil(t, err)
-// 		assert.ErrorContains(t, err, "tidak ditemukan")
-// 		assert.Empty(t, token)
-// 		assert.Equal(t, uint(0), res.ID)
-// 		repo.AssertExpectations(t)
-// 	})
 
-// 	t.Run("Salah password", func(t *testing.T) {
-// 		inputEmail := "jerry@alterra.id"
-// 		hashed, _ := helper.GeneratePassword("be1422")
-// 		resData := user.UserCore{ID: uint(1), Nama: "jerry", Email: "jerry@alterra.id", HP: "08123456", Password: hashed}
-// 		repo.On("Login", inputEmail).Return(resData, nil)
 
-// 		srv := Isolation(repo)
-// 		token, res, err := srv.Login(inputEmail, "be1423")
-// 		assert.NotNil(t, err)
-// 		assert.ErrorContains(t, err, "password tidak sesuai")
-// 		assert.Empty(t, token)
-// 		assert.Equal(t, uint(0), res.ID)
-// 		repo.AssertExpectations(t)
-// 	})
+func TestLogin(t *testing.T) {
+	repo := mocks.NewUserData(t) // mock data
 
-// }
+	t.Run("Berhasil login", func(t *testing.T) {
+		// input dan respond untuk mock data
+		inputEmail := "jerry@alterra.id"
+		// res dari data akan mengembalikan password yang sudah di hash
+		hashed, _ := helper.GeneratePassword("be1422")
+		resData := user.UserCore{ID: uint(1), Nama: "jerry", Email: "jerry@alterra.id", HP: "08123456", Password: hashed}
 
-// func TestProfile(t *testing.T) {
-// 	repo := mocks.NewUserData(t)
+		repo.On("Login", inputEmail).Return(resData, nil) // simulasi method login pada layer data
 
-// 	t.Run("Sukses lihat profile", func(t *testing.T) {
-// 		resData := user.UserCore{ID: uint(1), Nama: "jerry", Email: "jerry@alterra.id", HP: "08123456"}
+		srv := Isolation(repo)
+		token, res, err := srv.Login(inputEmail, "be1422")
+		assert.Nil(t, err)
+		assert.NotEmpty(t, token)
+		assert.Equal(t, resData.ID, res.ID)
+		repo.AssertExpectations(t)
+	})
 
-// 		repo.On("Profile", uint(1)).Return(resData, nil).Once()
+	t.Run("Tidak ditemukan", func(t *testing.T) {
+		inputEmail := "putra@alterra.id"
+		repo.On("Login", inputEmail).Return(user.UserCore{}, errors.New("data not found"))
 
-// 		srv := Isolation(repo)
+		srv := Isolation(repo)
+		token, res, err := srv.Login(inputEmail, "be1422")
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "tidak ditemukan")
+		assert.Empty(t, token)
+		assert.Equal(t, uint(0), res.ID)
+		repo.AssertExpectations(t)
+	})
 
-// 		_, token := helper.GenerateJWT(1)
+	t.Run("Salah password", func(t *testing.T) {
+		inputEmail := "jerry@alterra.id"
+		hashed, _ := helper.GeneratePassword("be1422")
+		resData := user.UserCore{ID: uint(1), Nama: "jerry", Email: "jerry@alterra.id", HP: "08123456", Password: hashed}
+		repo.On("Login", inputEmail).Return(resData, nil)
 
-// 		pToken := token.(*jwt.Token)
-// 		pToken.Valid = true
+		srv := Isolation(repo)
+		token, res, err := srv.Login(inputEmail, "be1423")
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "password tidak sesuai")
+		assert.Empty(t, token)
+		assert.Equal(t, uint(0), res.ID)
+		repo.AssertExpectations(t)
+	})
 
-// 		res, err := srv.Profile(pToken)
-// 		assert.Nil(t, err)
-// 		assert.Equal(t, resData.ID, res.ID)
-// 		repo.AssertExpectations(t)
-// 	})
+}
 
-// 	t.Run("jwt tidak valid", func(t *testing.T) {
-// 		srv := Isolation(repo)
+func TestProfile(t *testing.T) {
+	repo := mocks.NewUserData(t)
 
-// 		_, token := helper.GenerateJWT(1)
+	t.Run("Sukses lihat profile", func(t *testing.T) {
+		resData := user.UserCore{ID: uint(1), Nama: "jerry", Email: "jerry@alterra.id", HP: "08123456"}
 
-// 		res, err := srv.Profile(token)
-// 		assert.NotNil(t, err)
-// 		assert.ErrorContains(t, err, "not found")
-// 		assert.Equal(t, uint(0), res.ID)
-// 	})
+		repo.On("Profile", uint(1)).Return(resData, nil).Once()
 
-// 	t.Run("data tidak ditemukan", func(t *testing.T) {
-// 		repo.On("Profile", uint(4)).Return(user.UserCore{}, errors.New("data not found")).Once()
+		srv := Isolation(repo)
 
-// 		srv := Isolation(repo)
+		_, token := helper.GenerateJWT(1)
 
-// 		_, token := helper.GenerateJWT(4)
-// 		pToken := token.(*jwt.Token)
-// 		pToken.Valid = true
-// 		res, err := srv.Profile(pToken)
-// 		assert.NotNil(t, err)
-// 		assert.ErrorContains(t, err, "tidak ditemukan")
-// 		assert.Equal(t, uint(0), res.ID)
-// 		repo.AssertExpectations(t)
-// 	})
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
 
-// 	t.Run("masalah di server", func(t *testing.T) {
-// 		repo.On("Profile", mock.Anything).Return(user.UserCore{}, errors.New("terdapat masalah pada server")).Once()
-// 		srv := Isolation(repo)
+		res, err := srv.Profile(pToken)
+		assert.Nil(t, err)
+		assert.Equal(t, resData.ID, res.ID)
+		repo.AssertExpectations(t)
+	})
 
-// 		_, token := helper.GenerateJWT(1)
-// 		pToken := token.(*jwt.Token)
-// 		pToken.Valid = true
-// 		res, err := srv.Profile(pToken)
-// 		assert.NotNil(t, err)
-// 		assert.ErrorContains(t, err, "server")
-// 		assert.Equal(t, uint(0), res.ID)
-// 		repo.AssertExpectations(t)
-// 	})
-// }
+	t.Run("jwt tidak valid", func(t *testing.T) {
+		srv := Isolation(repo)
 
-// // func TestRegister(t *testing.T) {
-// // 	repo := mocks.NewUserData(t)
-// // }
+		_, token := helper.GenerateJWT(1)
 
-// func TestUpdate(t *testing.T) {
-// 	repo := mocks.NewUserData(t)
+		res, err := srv.Profile(token)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "not found")
+		assert.Equal(t, uint(0), res.ID)
+	})
 
-// 	t.Run("sukses update data", func(t *testing.T) {
-// 		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", HP: "081234567"}
+	t.Run("data tidak ditemukan", func(t *testing.T) {
+		repo.On("Profile", uint(4)).Return(user.UserCore{}, errors.New("data not found")).Once()
 
-// 		hash, _ := helper.GeneratePassword("alfian1221")
-// 		resData := user.UserCore{ID: uint(1), Nama: "alfian", Email: "alfian@example.com", HP: "081234567", Password: hash}
-// 		repo.On("Update", uint(1), inputData).Return(resData, nil)
+		srv := Isolation(repo)
 
-// 		srv := Isolation(repo)
+		_, token := helper.GenerateJWT(4)
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+		res, err := srv.Profile(pToken)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "tidak ditemukan")
+		assert.Equal(t, uint(0), res.ID)
+		repo.AssertExpectations(t)
+	})
 
-// 		_, token := helper.GenerateJWT(1)
+	t.Run("masalah di server", func(t *testing.T) {
+		repo.On("Profile", mock.Anything).Return(user.UserCore{}, errors.New("terdapat masalah pada server")).Once()
+		srv := Isolation(repo)
 
-// 		pToken := token.(*jwt.Token)
-// 		pToken.Valid = true
+		_, token := helper.GenerateJWT(1)
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+		res, err := srv.Profile(pToken)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "server")
+		assert.Equal(t, uint(0), res.ID)
+		repo.AssertExpectations(t)
+	})
+}
 
-// 		res, err := srv.Update(pToken, inputData)
-// 		assert.Nil(t, err)
-// 		assert.Equal(t, resData.ID, res.ID)
-// 		repo.AssertExpectations(t)
-// 	})
 
-// 	t.Run("tidak ditemukan", func(t *testing.T) {
-// 		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", HP: "081234567"}
-// 		repo.On("Update", uint(2), inputData).Return(user.UserCore{}, errors.New("not found")).Once()
+func TestUpdate(t *testing.T) {
+	repo := mocks.NewUserData(t)
 
-// 		srv := Isolation(repo)
+	t.Run("sukses update data", func(t *testing.T) {
+		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", HP: "081234567"}
 
-// 		_, token := helper.GenerateJWT(2)
+		hash, _ := helper.GeneratePassword("alfian1221")
+		resData := user.UserCore{ID: uint(1), Nama: "alfian", Email: "alfian@example.com", HP: "081234567", Password: hash}
+		repo.On("Update", uint(1), inputData).Return(resData, nil).Once()
 
-// 		pToken := token.(*jwt.Token)
-// 		pToken.Valid = true
+		srv := Isolation(repo)
 
-// 		res, err := srv.Update(pToken, inputData)
-// 		assert.NotNil(t, err)
-// 		assert.ErrorContains(t, err, "tidak ditemukan")
-// 		assert.Equal(t, uint(0), res.ID)
-// 		repo.AssertExpectations(t)
-// 	})
+		_, token := helper.GenerateJWT(1)
 
-// 	t.Run("masalah pada server", func(t *testing.T) {
-// 		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", HP: "081234567"}
-// 		repo.On("Update", uint(2), inputData).Return(user.UserCore{}, errors.New("terdapat masalah pada server")).Once()
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
 
-// 		srv := Isolation(repo)
+		res, err := srv.Update(pToken, inputData)
+		assert.Nil(t, err)
+		assert.Equal(t, resData.ID, res.ID)
+		repo.AssertExpectations(t)
+	})
 
-// 		_, token := helper.GenerateJWT(2)
+	t.Run("tidak ditemukan", func(t *testing.T) {
+		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", HP: "081234567"}
+		repo.On("Update", uint(2), inputData).Return(user.UserCore{}, errors.New("not found")).Once()
 
-// 		pToken := token.(*jwt.Token)
-// 		pToken.Valid = true
+		srv := Isolation(repo)
 
-// 		res, err := srv.Update(pToken, inputData)
-// 		assert.NotNil(t, err)
-// 		assert.ErrorContains(t, err, "server")
-// 		assert.Equal(t, uint(0), res.ID)
-// 		repo.AssertExpectations(t)
-// 	})
+		_, token := helper.GenerateJWT(2)
 
-// 	t.Run("jwt tidak valid", func(t *testing.T) {
-// 		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", HP: "081234567"}
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
 
-// 		srv := Isolation(repo)
+		res, err := srv.Update(pToken, inputData)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "tidak ditemukan")
+		assert.Equal(t, uint(0), res.ID)
+		repo.AssertExpectations(t)
+	})
 
-// 		_, token := helper.GenerateJWT(0)
+	t.Run("masalah pada server", func(t *testing.T) {
+		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", HP: "081234567"}
+		repo.On("Update", uint(2), inputData).Return(user.UserCore{}, errors.New("terdapat masalah pada server")).Once()
 
-// 		pToken := token.(*jwt.Token)
-// 		pToken.Valid = true
+		srv := Isolation(repo)
 
-// 		res, err := srv.Update(pToken, inputData)
-// 		assert.NotNil(t, err)
-// 		assert.ErrorContains(t, err, "data not found")
-// 		assert.Equal(t, uint(0), res.ID)
-// 	})
-// }
+		_, token := helper.GenerateJWT(2)
+
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+
+		res, err := srv.Update(pToken, inputData)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "server")
+		assert.Equal(t, uint(0), res.ID)
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("jwt tidak valid", func(t *testing.T) {
+		inputData := user.UserCore{Nama: "alfian", Email: "alfian@example.com", HP: "081234567"}
+
+		srv := Isolation(repo)
+
+		_, token := helper.GenerateJWT(0)
+
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+
+		res, err := srv.Update(pToken, inputData)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "not found")
+		assert.Equal(t, uint(0), res.ID)
+	})
+}
+
+func TestDeactive(t *testing.T) {
+	repo := mocks.NewUserData(t)
+
+	t.Run("sukses delete", func(t *testing.T) {
+		repo.On("Deactive", uint(1)).Return(nil).Once()
+
+		srv := Isolation(repo)
+
+		_, token := helper.GenerateJWT(1)
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+
+		err := srv.Deactive(pToken)
+		assert.Nil(t, err)
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("data tidak ditemukan", func(t *testing.T) {
+		repo.On("Deactive", uint(2)).Return(errors.New("data not found")).Once()
+
+		srv := Isolation(repo)
+
+		_, token := helper.GenerateJWT(2)
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+
+		err := srv.Deactive(pToken)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "tidak ditemukan")
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("jwt tidak valid", func(t *testing.T) {
+		srv := Isolation(repo)
+
+		_, token := helper.GenerateJWT(0)
+
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+
+		err := srv.Deactive(pToken)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "not found")
+		repo.AssertExpectations(t)
+	})
+
+	t.Run("masalah di server", func(t *testing.T) {
+		repo.On("Deactive", mock.Anything).Return(errors.New("terdapat masalah pada server")).Once()
+		srv := Isolation(repo)
+
+		_, token := helper.GenerateJWT(1)
+		pToken := token.(*jwt.Token)
+		pToken.Valid = true
+		err := srv.Deactive(pToken)
+		assert.NotNil(t, err)
+		assert.ErrorContains(t, err, "server")
+		repo.AssertExpectations(t)
+	})
+}

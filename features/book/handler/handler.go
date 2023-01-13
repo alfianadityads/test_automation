@@ -62,6 +62,46 @@ func (bh *bookHdl) Update() echo.HandlerFunc {
 		return c.JSON(helper.PrintSuccessReponse(http.StatusCreated, "sukses mengubah buku", res))
 	}
 }
-func (bh *bookHdl) Delete() echo.HandlerFunc
+func (bh *bookHdl) Delete() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token := c.Get("user")
 
-//func(bh *bookHdl) MyBook() echo.HandlerFunc
+		paramID := c.Param("id")
+		bookID, err := strconv.Atoi(paramID)
+		if err != nil {
+			log.Println("Convert id error : ", err.Error())
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "Please input number only",
+			})
+		}
+
+		err = bh.srv.Delete(token, uint(bookID))
+
+		if err != nil {
+			return c.JSON(helper.PrintErrorResponse(err.Error()))
+		}
+
+		return c.JSON(http.StatusAccepted, "deleted a book successfully")
+	}
+}
+
+func (bh *bookHdl) MyBook() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		res, err := bh.srv.BookList()
+		if err != nil {
+			return c.JSON(helper.PrintErrorResponse(err.Error()))
+		}
+
+		return c.JSON(helper.PrintSuccessReponse(http.StatusCreated, "displayed all books successfully", res))
+	}
+}
+
+func (bh *bookHdl) BookList() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		res, err := bh.srv.BookList()
+		if err != nil {
+			return c.JSON(helper.PrintErrorResponse(err.Error()))
+		}
+		return c.JSON(helper.PrintSuccessReponse(http.StatusCreated, "display all books completed", res))
+	}
+}
