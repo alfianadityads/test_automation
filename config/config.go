@@ -25,9 +25,40 @@ func InitConfig() *AppConfig {
 	return ReadEnv()
 }
 
-// membuat fungsi untuk membaca file .env
 func ReadEnv() *AppConfig {
 	app := AppConfig{}
+	isRead := true
+
+	if val, found := os.LookupEnv("JWT_KEY"); found {
+		app.jwtKey = val
+		isRead = false
+	}
+	if val, found := os.LookupEnv("DBUSER"); found {
+		app.DBUser = val
+		isRead = false
+	}
+	if val, found := os.LookupEnv("DBPASS"); found {
+		app.DBPass = val
+		isRead = false
+	}
+	if val, found := os.LookupEnv("DBHOST"); found {
+		app.DBHost = val
+		isRead = false
+	}
+	if val, found := os.LookupEnv("DBPORT"); found {
+		cnv, _ := strconv.Atoi(val)
+		app.DBPort = cnv
+		isRead = false
+	}
+	if val, found := os.LookupEnv("DBNAME"); found {
+		app.DBName = val
+		isRead = false
+	}
+
+	if isRead {
+		viper.AddConfigPath(".")
+		viper.SetConfigName("local")
+		viper.SetConfigType("env")
 
 	viper.AddConfigPath(".")
 	viper.SetConfigName("local")
