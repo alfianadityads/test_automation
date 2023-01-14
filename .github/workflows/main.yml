@@ -25,7 +25,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USER }}/projectauto:latest
+          tags: ${{ secrets.DOCKER_USER }}/testauto:latest
           # tags: ${{ secrets.DOCKER_USER }}/nama_images:latest
     - 
       name: executing remote ssh commands using password
@@ -36,5 +36,8 @@ jobs:
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         script: |
-          touch res.txt
-          echo "hello from githubAction" >> res.txt
+            docker rmi ${{ secrets.DOCKER_USER }}/testauto
+            docker pull ${{ secrets.DOCKER_USER }}/testauto
+            docker stop coba3
+            docker rm coba3
+            docker run --name coba3 -p 80:8000 -d -e DBUSER=root -e DBPASS="" -e DBHOST=mysqlku -e DBNAME=testauto -e DBPORT=3306 -e JWT_KEY="BE!4a|t3rr4" --link mysqlku ${{ secrets.DOCKER_USER }}/testauto
