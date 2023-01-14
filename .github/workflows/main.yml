@@ -1,6 +1,7 @@
 name: remote ssh command
 on: [push]
 jobs:
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -36,9 +37,4 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           touch res.txt
-          echo "Hello from githubAction $(date)" >> res.txt
-          docker stop ${{ secrets.CONTAINER }}
-          docker rm ${{ secrets.CONTAINER }}
-          docker rmi ${{ secrets.DOCKER_USER }}/${{ secrets.IMAGE }}
-          docker pull ${{ secrets.DOCKER_USER }}/${{ secrets.IMAGE }}
-          docker run --name ${{ secrets.CONTAINER }} -e DBUSER=${{ secrets.DBUSER }} -e DBPASS=${{ secrets.DBPASSWORD }} -e DBHOST=${{ secrets.DBHOST }} -e DBPORT=${{ secrets.DBPORT }} -e DBNAME=${{ secrets.DBNAME }} -e JWT_KEY=${{ secrets.JWT_KEY }} -d -p 80:8000 ${{ secrets.DOCKER_USER }}/${{ secrets.IMAGE }}
+          echo "hello from githubAction" >> res.txt
